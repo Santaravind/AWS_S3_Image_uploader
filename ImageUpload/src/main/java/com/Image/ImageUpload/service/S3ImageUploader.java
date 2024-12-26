@@ -1,8 +1,12 @@
 package com.Image.ImageUpload.service;
 
+import com.Image.ImageUpload.entity.Document;
+import com.Image.ImageUpload.repositery.DocumentRepositery;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import jakarta.transaction.Transactional;
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,16 +14,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class S3ImageUploader implements  ImageUploader{
 
     //repositories
        //other services
+    @Autowired
+    private DocumentRepositery repositery;
 
     @Autowired
     private AmazonS3 client;
@@ -30,20 +35,23 @@ public class S3ImageUploader implements  ImageUploader{
 
 
     @Override
-    public String uploadImage(MultipartFile image) throws IOException {
-
+    public String uploadImage(MultipartFile image,Long empId ) throws IOException {
         if (image== null){
             throw new IOException("image is null !!");
         }
-
         String actualFileName=image.getOriginalFilename();
         String fileName= UUID.randomUUID().toString()+actualFileName.substring(actualFileName.lastIndexOf("."));
         ObjectMetadata metaData =new ObjectMetadata();
         metaData.setContentLength(image.getSize());
-
         PutObjectResult putObjectResult=client.putObject(new PutObjectRequest(bucketName, fileName,image.getInputStream(),metaData));
 
-        return this.preSingedUrl(fileName) ;
+        //new add for database
+        String fileurl=this.preSingedUrl(fileName);
+
+
+        Document data=new Document(fileName,empId, new Date() );
+         repositery.save(data);
+        return fileurl ;
     }
 
     @Override
@@ -85,6 +93,7 @@ public class S3ImageUploader implements  ImageUploader{
 
     return url;
     }
+
 
 
 }

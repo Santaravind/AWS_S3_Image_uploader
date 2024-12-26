@@ -4,18 +4,14 @@ import axios from 'axios';
 import AllImage from './AllImage';
 function ImageUploader() {
     const [selectedFile, setselectedFile] = useState(null);
-    const [files, setfiles] = useState([]);
+     const [empId, setempId] = useState("");
     const [messageStatus, setmessageStatus] = useState(false);
     const [uploading, setuploading] = useState(false);
-
-
     const [uploadedSrc, setuploadedSrc] = useState("");
 
     const handalonchange=(event)=>{
     const file=event.target.files[0];
-
     console.log(file);
-
     if (file.type==='image/png'||file.type==='image/jpeg'||file.type==='') {
         setselectedFile(file);
         }else{
@@ -24,18 +20,26 @@ function ImageUploader() {
         }
    
     };
+
+    const handalEmpchange=(event)=>{
+       
+       setempId(event.target.value);
+
+    }
  
     const formSubmit=(event)=>{
         event.preventDefault();
 
-        if (selectedFile) {
+        if (!selectedFile) {
             //image upload
-            uplploadImageToServer();   
+           // uplploadImageToServer();
+           alert("Select image first!")   
 
-        } else {
-            alert("Select image first!!");   
         }
-
+         if(!empId) {
+            alert("Select id first!!");   
+        }
+        uplploadImageToServer();   
     };
 
     //function to upload image to server 
@@ -46,13 +50,18 @@ function ImageUploader() {
         const formData = new FormData();
 
         formData.append("file", selectedFile);
+        formData.append("empID",empId);
 
         axios.post(URL,formData)  
             .then((res)=>{console.log(res.data)
             setuploadedSrc(res.data);
            // messageStatus(true);
         })
-            .catch().finally(
+            .catch((error)=>{
+                console.error("Error uploading file:", error);
+                alert("Failed to upload file!");
+            })
+            .finally(
                // setmessageStatus(false),
                 setuploading(false)
             );
@@ -69,6 +78,9 @@ function ImageUploader() {
               <div className='flex flex-col gap-y-2'>
                 <label htmlFor="file"> Select image</label>
                 <input onChange={handalonchange} type="file" id='file' />
+
+                <label htmlFor="text"> Employee Id </label>
+                <input type='text' id='text' onChange={handalEmpchange} />
               </div>
              <div className='flex justify-end '>
                 <button type='submit' className='border m-2 p-2 rounded-lg  text-white  hover:text-red-500 hover:bg-yellow-100 bg-blue-600 '>Upload</button>

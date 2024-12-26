@@ -1,21 +1,30 @@
 package com.Image.ImageUpload.controller;
 
+import com.Image.ImageUpload.entity.Document;
+import com.Image.ImageUpload.repositery.DocumentRepositery;
+import com.Image.ImageUpload.service.DocuService;
 import com.Image.ImageUpload.service.ImageUploader;
-import jakarta.persistence.GeneratedValue;
-import org.springframework.http.RequestEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin
 @RestController
 @RequestMapping("/api")
 public class S3Controller {
 
+    @Autowired
+    private DocumentRepositery repositery;
+
+    @Autowired
     private ImageUploader uploader;
+
+
 
     public  S3Controller(ImageUploader uploader){
         this.uploader=uploader;
@@ -23,8 +32,8 @@ public class S3Controller {
 
     //upload image
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadImage(@RequestParam("file")  MultipartFile file) throws IOException {
-           return  ResponseEntity.ok(uploader.uploadImage(file));
+    public ResponseEntity<?> uploadImage(@RequestParam("file")  MultipartFile file ,@RequestParam("empID")  Long empId) throws IOException {
+           return  ResponseEntity.ok(uploader.uploadImage(file,empId));
     }
 
     //getall request
@@ -38,7 +47,10 @@ public class S3Controller {
 
     @GetMapping("/{fileName}")
     public String urlByName(@PathVariable("fileName") String fileName){
-      return uploader.getImagetUrlByName(fileName);
+
+        return uploader.getImagetUrlByName(fileName);
     }
+
+
 
 }
